@@ -7,12 +7,11 @@ require 'template/headerCust.php';
 require 'template/sidebarCust.php';
 
 // Ambil semua produk + nama kategori-nya
-$allProduk = query("SELECT produk.*, kategori.namaKategori 
-                    FROM produk 
-                    LEFT JOIN kategori ON produk.idKategori = kategori.idKategori");
+$allProduk = query("SELECT * FROM produkJadi");
 
-// Ambil daftar kategori dari DB
-$kategori = query("SELECT * FROM kategori");
+
+// // Ambil daftar kategori dari DB
+// $kategori = query("SELECT * FROM kategori");
 
 ?>
 
@@ -30,7 +29,7 @@ $kategori = query("SELECT * FROM kategori");
     </div>
 
     <div class="container">
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-5">
                 <p>Pilih Kategori : </p>
                 <select class="form-select mb-5" id="kategoriFilter">
@@ -40,16 +39,16 @@ $kategori = query("SELECT * FROM kategori");
                     <?php endforeach; ?>
                 </select>
             </div>
-        </div>
+        </div> -->
 
         <div class="row">
             <?php foreach($allProduk as $produk) : ?>
-                <div class="col-md-4 mb-4" data-kategori="<?= $produk["namaKategori"]; ?>">
+                
                     <div class="card" style="width: 22rem;">
                         <img src="../img/<?= $produk["gambarProduk"]; ?>" class="card-img-top custom-card-img" alt="...">
                         <div class="card-body">
                             <h5 class="card-title"><?= $produk["namaProduk"]; ?></h5>
-                            <p class="card-text"><?= $produk["namaKategori"]; ?></p>
+                            
                             <center class="text-danger mb-2">
                                 Rp<?= number_format($produk["hargaProduk"], 0, ',', '.'); ?>
                             </center>
@@ -63,7 +62,7 @@ $kategori = query("SELECT * FROM kategori");
                             </p>
                         </div>
                     </div>
-                </div>
+                
             <?php endforeach; ?>
         </div>
     </div>
@@ -71,7 +70,7 @@ $kategori = query("SELECT * FROM kategori");
 </main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
+<!-- <script>
     $(document).ready(function(){
         $("#kategoriFilter").on("change", function() {
             var selectedCategory = $(this).val();
@@ -88,4 +87,4 @@ $kategori = query("SELECT * FROM kategori");
             });
         });
     });
-</script>
+</script> -->

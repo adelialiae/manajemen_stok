@@ -42,7 +42,7 @@ require 'template/sidebarAdmin.php';
                             <td><?= htmlspecialchars($data['nama_bahan']); ?></td>
                             <td>
                                 <?php if ($data['gambar']) : ?>
-                                    <img src="../uploads/<?= htmlspecialchars($data['gambar']); ?>" width="50">
+                                    <img src="../img/<?= htmlspecialchars($data['gambar']); ?>" width="50">
                                 <?php else : ?>
                                     Tidak Ada
                                 <?php endif; ?>
@@ -51,7 +51,7 @@ require 'template/sidebarAdmin.php';
                             <td><?= $data['stok']; ?></td>
                             <td><?= htmlspecialchars($data['nama_supplier']); ?></td>
                             <td>
-                                <a href="pesanBahan.php?id=<?= $data['id_bahan']; ?>" class="btn btn-success btn-sm">Pesan</a>
+                                <a href="viewKeranjang.php?id=<?= $data['id_bahan']; ?>" class="btn btn-success btn-sm">Pesan</a>
                             </td>
                         </tr>
                         <?php endwhile; ?>

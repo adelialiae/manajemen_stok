@@ -27,6 +27,13 @@
         </a>
     </li>
 
+    <li class="nav-item">
+        <a class="nav-link <?php echo($title == 'Keranjang Bahan Baku') ? 'text-danger' : 'collapsed'; ?>" href="viewKeranjang.php">
+            <i class="bi bi-basket-fill"></i>
+            <span>Keranjang Pembelian Bahan Baku</span>
+        </a>
+    </li>
+
     <!-- Manajemen Stok -->
     <li class="nav-item">
         <a class="nav-link <?php echo($title == 'Manajemen Stok') ? 'text-danger' : 'collapsed'; ?>" href="manajemenStok.php">
@@ -37,7 +44,7 @@
 
     <!-- Transaksi & Pemesanan -->
     <li class="nav-item">
-        <a class="nav-link <?php echo($title == 'Transaksi & Pemesanan') ? 'text-danger' : 'collapsed'; ?>" href="transaksiPemesanan.php">
+        <a class="nav-link <?php echo($title == 'Transaksi & Pemesanan') ? 'text-danger' : 'collapsed'; ?>" href="viewTransaksi.php">
             <i class="bi bi-cart-fill"></i>
             <span>Transaksi & Pemesanan</span>
         </a>

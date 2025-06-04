@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['idKeranjang'], $_POST
     $jumlahBaru = (int) $_POST['jumlah'];
 
     // Ambil semua data yg dibutuhkan sekali aja
-    $keranjang = query("SELECT keranjang.idProduk, keranjang.jumlah AS jumlahLama, produk.hargaProduk, produk.stokProduk 
+    $keranjang = query("SELECT keranjang.idProduk, keranjang.jumlah AS jumlahLama, produk.hargaProduk, produkJadi.stokProduk 
                         FROM keranjang 
-                        JOIN produk ON keranjang.idProduk = produk.idProduk 
+                        JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk 
                         WHERE keranjang.idKeranjang = '$idKeranjang'")[0];
 
     $idProduk = $keranjang['idProduk'];
@@ -73,7 +73,7 @@ if (isset($_GET['hapus']) && isset($_GET['id'])) {
 
     $keranjangItem = query("SELECT idProduk, jumlah FROM keranjang WHERE idKeranjang = '$idKeranjang'")[0];
 
-    mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk + {$keranjangItem['jumlah']} WHERE idProduk = '{$keranjangItem['idProduk']}'");
+    mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk + {$keranjangItem['jumlah']} WHERE idProduk = '{$keranjangItem['idProduk']}'");
     mysqli_query($connect, "DELETE FROM keranjang WHERE idKeranjang = '$idKeranjang'");
 
     echo "<script>
@@ -102,7 +102,7 @@ if (isset($_POST["submit"])) {
 }
 
 // Ambil semua keranjang user
-$allKeranjang = query("SELECT * FROM keranjang JOIN produk ON keranjang.idProduk = produk.idProduk WHERE username = '$username' AND status = 'Belum Dibayar'");
+$allKeranjang = query("SELECT * FROM keranjang JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk WHERE username = '$username' AND status = 'Belum Dibayar'");
 
 // Hitung total
 $totalHarga = query("SELECT SUM(harga) AS totalHarga FROM keranjang WHERE username = '$username' AND status = 'Belum Dibayar'")[0]["totalHarga"];

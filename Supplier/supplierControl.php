@@ -1,5 +1,6 @@
 <?php
 require '../connect.php';
+require 'template/sidebarSupplier.php';
 
 class SupplierController
 {

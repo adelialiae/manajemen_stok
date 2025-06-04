@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 $title = 'Dashboard';
 
@@ -6,18 +6,27 @@ require 'adminControl.php';
 require 'template/headerAdmin.php';
 require 'template/sidebarAdmin.php';
 
-$totalTransaksiSelesai = count(query("SELECT * FROM transaksi WHERE statusPengiriman = 'Terkirim'"));
-$totalCancelTransaksi = count(query("SELECT * FROM transaksi WHERE statusTransaksi = 'Cancelled'"));
-$totalProduk = count(query("SELECT * FROM produk"));
-$totalCustomer = count(query("SELECT * FROM customer"));
-$totalKeuangan = query("SELECT SUM(totalHarga) FROM transaksi WHERE statusPengiriman = 'Terkirim'")[0]['SUM(totalHarga)'];
-$stokRendah = count(query("SELECT * FROM produk WHERE stokProduk <= 10"));
-$totalSupplier = count(query("SELECT * FROM supplier"));
+// Ambil total stok produkJadi
+$totalStokProduk = query("SELECT COUNT(idProduk) AS totalProduk FROM produkjadi")[0]['totalProduk'];
+
+// Ambil total pesanan dari customer (status apapun, misalnya jika semua status dihitung)
+$totalPesanan = count(query("SELECT * FROM transaksi"));
+
+// Ambil total pemasukan (hanya transaksi yang statusnya sudah 'Terkirim')
+$totalIncome = query("SELECT SUM(totalHarga) AS total FROM transaksi WHERE statusPengiriman = 'Terkirim'")[0]['total'];
+
+// Notifikasi stok rendah (stok <= 10)
+$stokRendah = count(query("SELECT SUM(stokProduk) AS totalStokJadi FROM produkJadi WHERE stokProduk <= 10"));
+
+// Ambil total stok bahan baku
+$totalStokBahanBaku = query("SELECT SUM(stokSisa) AS totalStokBahan FROM inventorystokbahan")[0]['totalStokBahan'];
+
+
 ?>
 
 <style>
   .random-color {
-    background-color:rgb(235, 167, 150);
+    background-color: rgb(235, 167, 150);
     color: white;
     text-align: center;
     padding: 20px;
@@ -35,39 +44,7 @@ $totalSupplier = count(query("SELECT * FROM supplier"));
       <div class="row">
 
         <div class="col-lg-4">
-          <div class="card info-card random-color succes-card">
-            <div class="card-body">
-              <h5 class="card-title text-white">Total Transaksi Selesai</h5>
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-bag-check"></i>
-                </div>
-                <div class="ps-3">
-                  <h6><?= $totalTransaksiSelesai; ?></h6>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="card info-card random-color cancelled-card">
-            <div class="card-body">
-              <h5 class="card-title text-white">Total Transaksi Dibatalkan</h5>
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-calendar-x"></i>
-                </div>
-                <div class="ps-3">
-                  <h6><?= $totalCancelTransaksi; ?></h6>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="card info-card random-color product-card">
+          <div class="card info-card random-color">
             <div class="card-body">
               <h5 class="card-title text-white">Total Produk</h5>
               <div class="d-flex align-items-center">
@@ -75,7 +52,7 @@ $totalSupplier = count(query("SELECT * FROM supplier"));
                   <i class="bi bi-box"></i>
                 </div>
                 <div class="ps-3">
-                  <h6><?= $totalProduk; ?></h6>
+                  <h6><?= $totalStokProduk; ?></h6>
                 </div>
               </div>
             </div>
@@ -83,15 +60,15 @@ $totalSupplier = count(query("SELECT * FROM supplier"));
         </div>
 
         <div class="col-lg-4">
-          <div class="card info-card random-color customer-card">
+          <div class="card info-card random-color">
             <div class="card-body">
-              <h5 class="card-title text-white">Total Customer</h5>
+              <h5 class="card-title text-white">Total Pesanan</h5>
               <div class="d-flex align-items-center">
                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-person"></i>
+                  <i class="bi bi-cart"></i>
                 </div>
                 <div class="ps-3">
-                  <h6><?= $totalCustomer; ?></h6>
+                  <h6><?= $totalPesanan; ?></h6>
                 </div>
               </div>
             </div>
@@ -107,12 +84,28 @@ $totalSupplier = count(query("SELECT * FROM supplier"));
                   <i class="bi bi-cash"></i>
                 </div>
                 <div class="ps-3">
-                  <h6 class="text-white">Rp<?= number_format($totalKeuangan, 0, ',', '.'); ?></h6>
+                  <h6 class="text-white">Rp<?= number_format($totalIncome ?? 0, 0, ',', '.'); ?></h6>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div class="col-lg-4">
+        <div class="card info-card random-color">
+          <div class="card-body">
+            <h5 class="card-title text-white">Total Stok Bahan Baku</h5>
+            <div class="d-flex align-items-center">
+              <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                <i class="bi bi-box-seam"></i>
+              </div>
+              <div class="ps-3">
+                <h6><?= $totalStokBahanBaku ?? 0; ?></h6>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <div class="col-lg-4">
           <div class="card info-card random-color">
@@ -124,22 +117,6 @@ $totalSupplier = count(query("SELECT * FROM supplier"));
                 </div>
                 <div class="ps-3">
                   <h6><?= $stokRendah; ?> produk</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="card info-card random-color">
-            <div class="card-body">
-              <h5 class="card-title text-white">Total Supplier</h5>
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-truck"></i>
-                </div>
-                <div class="ps-3">
-                  <h6><?= $totalSupplier; ?></h6>
                 </div>
               </div>
             </div>

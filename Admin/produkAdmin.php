@@ -5,12 +5,7 @@ require 'adminControl.php';
 require 'template/headerAdmin.php';
 require 'template/sidebarAdmin.php';
 
-// Ambil semua produk dengan nama kategori dari tabel kategori
-$allProduk = query("
-    SELECT produk.*, supplier.nama_supplier 
-    FROM produk 
-    JOIN supplier ON produk.idSupplier = supplier.id_supplier
-");
+$allProduk = query("SELECT * FROM produkJadi");
 
 ?>
 
@@ -41,7 +36,7 @@ $allProduk = query("
                                     <th scope="col">No</th>
                                     <th scope="col">ID Produk</th>
                                     <th scope="col">Nama Produk</th>
-                                    <th scope="col">Supplier</th>
+                                    <th scope="col">Varian Rasa</th>
                                     <th scope="col">Harga</th>
                                     <th scope="col">Stok</th>
                                     <th scope="col">Gambar</th>
@@ -55,7 +50,7 @@ $allProduk = query("
                                         <td><?= $i; ?></td>
                                         <td><?= $produk["idProduk"]; ?></td>
                                         <td><?= $produk["namaProduk"]; ?></td>
-                                        <td><?= $produk["nama_supplier"]; ?></td>
+                                        <td><?= $produk["varianRasa"]; ?></td>
                                         <td>Rp<?= number_format($produk["hargaProduk"], 0, ',', '.'); ?></td>
                                         <td><?= $produk["stokProduk"]; ?></td>
                                         <td><img src="../img/<?= $produk["gambarProduk"]; ?>" width="100px"></td>

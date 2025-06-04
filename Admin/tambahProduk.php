@@ -6,47 +6,36 @@ require 'adminControl.php';
 require 'template/headerAdmin.php';
 require 'template/sidebarAdmin.php';
 
-// Ambil semua kategori dari DB
-$kategori = query("SELECT * FROM supplier");
-
 
 // Cek apakah tombol submit sudah ditekan atau belum
 if (isset($_POST["submit"])) {
-    $idProduk = 'PRD-' . time(); // Ini akan digenerate setiap halaman dibuka
+    $idProduk = 'PRD-' . time();
     $namaProduk = $_POST['namaProduk'];
-    $idKategori = $_POST['idKategori'];
-    $kategoriBaru = $_POST['kategoriBaru'] ?? '';
+    $varianRasa = $_POST['varianRasa'];
     $hargaProduk = $_POST['hargaProduk'];
     $stokProduk = $_POST['stokProduk'];
     $deskripsiProduk = $_POST['deskripsiProduk'];
     $gambarProduk = $_FILES['gambarProduk']['name'];
     $tmpGambar = $_FILES['gambarProduk']['tmp_name'];
 
-    // Jika pilih 'lain', tambahkan kategori baru
-    if ($idKategori === "lain" && !empty($kategoriBaru)) {
-        mysqli_query($connect, "INSERT INTO kategori(namaKategori) VALUES('$kategoriBaru')");
-        $idKategori = mysqli_insert_id($connect);
-    }
-
-    // Upload gambar
     move_uploaded_file($tmpGambar, '../img/' . $gambarProduk);
 
-    // Simpan produk
-    $query = "INSERT INTO produk(idProduk, namaProduk, idKategori, hargaProduk, stokProduk, gambarProduk, deskripsiProduk) 
-    VALUES('$idProduk', '$namaProduk', '$idKategori', '$hargaProduk', '$stokProduk', '$gambarProduk', '$deskripsiProduk')";
+    $query = "INSERT INTO produkjadi(idProduk, namaProduk, varianRasa, hargaProduk, stokProduk, gambarProduk, deskripsiProduk) 
+    VALUES('$idProduk', '$namaProduk', '$varianRasa', '$hargaProduk', '$stokProduk', '$gambarProduk', '$deskripsiProduk')";
 
     if (mysqli_query($connect, $query)) {
         echo "<script>
-                alert('Data berhasil ditambahkan!');
+                alert('Produk berhasil ditambahkan!');
                 document.location.href = 'produkAdmin.php';
               </script>";
     } else {
         echo "<script>
-                alert('Data gagal ditambahkan!');
+                alert('Gagal menambahkan produk!');
                 document.location.href = 'produkAdmin.php';
               </script>";
     }
 }
+
 ?>
 
 <main id="main" class="main">
@@ -69,20 +58,10 @@ if (isset($_POST["submit"])) {
                             </div>
 
                             <div class="col-12">
-                                <label for="idKategori" class="form-label">Kategori Produk</label>
-                                <select class="form-select" id="idKategori" name="idKategori" required onchange="toggleKategoriBaru()">
-                                    <option value="">-- Pilih Kategori --</option>
-                                    <?php foreach ($kategori as $k) : ?>
-                                        <option value="<?= $k['idKategori']; ?>"><?= $k['namaKategori']; ?></option>
-                                    <?php endforeach; ?>
-                                    <option value="lain">Lain-lain (tambah kategori baru)</option>
-                                </select>
+                                <label for="varianRasa" class="form-label">Varian Rasa</label>
+                                <input type="text" class="form-control" id="varianRasa" name="varianRasa" required>
                             </div>
 
-                            <div class="col-12" id="kategoriBaruContainer" style="display: none;">
-                                <label for="kategoriBaru" class="form-label">Kategori Baru</label>
-                                <input type="text" class="form-control" id="kategoriBaru" name="kategoriBaru" placeholder="Masukkan nama kategori baru">
-                            </div>
 
                             <div class="col-12">
                                 <label for="hargaProduk" class="form-label">Harga Produk</label>
@@ -117,15 +96,3 @@ if (isset($_POST["submit"])) {
     </section>
 </main>
 
-<script>
-    function toggleKategoriBaru() {
-        var kategoriSelect = document.getElementById("idKategori");
-        var kategoriBaruContainer = document.getElementById("kategoriBaruContainer");
-
-        if (kategoriSelect.value === "lain") {
-            kategoriBaruContainer.style.display = "block";
-        } else {
-            kategoriBaruContainer.style.display = "none";
-        }
-    }
-</script>

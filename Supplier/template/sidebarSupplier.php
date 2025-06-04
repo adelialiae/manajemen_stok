@@ -12,7 +12,7 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link <?php echo($title == 'Manajemen Stok') ? 'text-danger' : 'collapsed'; ?>" href="bahan_baku.php">
+        <a class="nav-link <?php echo($title == 'Manajemen Stok') ? 'text-danger' : 'collapsed'; ?>" href="bahan_bakuSupp.php">
             <i class="bi bi-archive-fill"></i>
             <span>Bahan Baku</span>
         </a>

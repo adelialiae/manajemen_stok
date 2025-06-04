@@ -44,7 +44,7 @@ function tambahProduk($data){
     }
 
     // Simpan produk
-    $query = "INSERT INTO produk (idProduk, namaProduk, hargaProduk, stokProduk, gambarProduk, idKategori, deskripsiProduk) 
+    $query = "INSERT INTO produkJadi (idProduk, namaProduk, hargaProduk, stokProduk, gambarProduk, idKategori, deskripsiProduk) 
               VALUES ('$idProduk','$namaProduk','$hargaProduk','$stokProduk','$gambarProduk','$idKategori','$deskripsiProduk')";
 
     mysqli_query($connect, $query);
@@ -90,7 +90,7 @@ function updateProduk($data){
     $hargaProduk = htmlspecialchars($data["hargaProduk"]);
     $stokProduk = htmlspecialchars($data["stokProduk"]);
     $deskripsiProduk = htmlspecialchars($data["deskripsiProduk"]);
-    $idKategori = $data["idKategori"];
+    $varianRasa = $data["varianRasa"];
     $beforeUpdate = htmlspecialchars($data["beforeupdate"]);
 
     if($_FILES['gambarProduk']['error'] === 4){
@@ -100,13 +100,13 @@ function updateProduk($data){
         unlink('../img/' . $beforeUpdate);
     }
 
-    $query = "UPDATE produk SET 
+    $query = "UPDATE produkJadi SET 
                 namaProduk = '$namaProduk',
                 hargaProduk = '$hargaProduk',
                 stokProduk = '$stokProduk',
                 deskripsiProduk = '$deskripsiProduk',
                 gambarProduk = '$gambarProduk',
-                idKategori = '$idKategori'
+                varianRasa = '$varianRasa'
               WHERE idProduk = '$idProduk'";
     
     mysqli_query($connect, $query);
@@ -114,13 +114,13 @@ function updateProduk($data){
 }
 
 // Function untuk hapus produk
-function deleteProduk($id){
+function deleteProduk($idProduk){
     global $connect;
-    $result = mysqli_query($connect, "SELECT gambarProduk FROM produk WHERE idProduk = '$id'");
+    $result = mysqli_query($connect, "SELECT gambarProduk FROM produkJadi WHERE idProduk = '$idProduk'");
     $row = mysqli_fetch_assoc($result);
     $gambarProduk = $row["gambarProduk"];
 
-    mysqli_query($connect, "DELETE FROM produk WHERE idProduk = '$id'");
+    mysqli_query($connect, "DELETE FROM produkJadi WHERE idProduk = '$idProduk'");
 
     if(mysqli_affected_rows($connect) > 0) {
         unlink('../img/' . $gambarProduk);
