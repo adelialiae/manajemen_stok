@@ -10,12 +10,17 @@ $pesananCustomer = query("SELECT * FROM transaksi ORDER BY idTransaksi DESC");
 
 // Transaksi Bahan Baku
 $transaksiBahanBaku = query("
-  SELECT tb.*, s.nama_supplier, bb.nama_bahan, tb.qty
-  FROM transaksi_pembelian tb
-  JOIN supplier s ON tb.id_supplier = s.id_supplier
-  JOIN bahan_baku bb ON tb.id_bahan = bb.id_bahan
-  ORDER BY tb.idTransaksi DESC
+  SELECT tp.idTransaksi, tp.tanggal, tp.caraBayar, tp.bank, tp.statusTransaksi, tp.totalHarga,
+         s.nama_supplier,
+         GROUP_CONCAT(CONCAT(bb.nama_bahan, ' (', dtb.qty, ')') SEPARATOR ', ') AS detail_bahan
+  FROM transaksi_pembelian tp
+  JOIN supplier s ON tp.id_supplier = s.id_supplier
+  JOIN detail_transaksi_pembelian dtb ON tp.idTransaksi = dtb.idTransaksi
+  JOIN bahan_baku bb ON dtb.id_bahan = bb.id_bahan
+  GROUP BY tp.idTransaksi
+  ORDER BY tp.tanggal DESC
 ");
+
 
 ?>
 
@@ -95,8 +100,6 @@ $transaksiBahanBaku = query("
                 <th>No</th>
                 <th>ID Transaksi</th>
                 <th>Supplier</th>
-                <th>Nama Bahan Baku</th>
-                <th>Qty</th>
                 <th>Tanggal</th>
                 <th>Cara Bayar</th>
                 <th>Bank</th>
@@ -108,26 +111,25 @@ $transaksiBahanBaku = query("
             <tbody>
               <?php $j=1; foreach($transaksiBahanBaku as $transaksiBB): ?>
                 <tr>
-                  <td><?= $j++; ?></td>
-                  <td><?= $transaksiBB["idTransaksi"]; ?></td>
-                  <td><?= $transaksiBB["nama_supplier"]; ?></td>
-                  <td><?= htmlspecialchars($transaksiBB["nama_bahan"]); ?></td>
-                  <td><?= $transaksiBB["qty"]; ?></td>
-                  <td><?= $transaksiBB["tanggal"]; ?></td>
-                  <td><?= $transaksiBB["caraBayar"]; ?></td>
-                  <td><?= $transaksiBB["bank"]; ?></td>
-                  <td><?= $transaksiBB["statusTransaksi"]; ?></td>
-                  <td>Rp<?= number_format($transaksiBB["totalHarga"], 0, ',', '.'); ?></td>
+                <td><?= $transaksiBB["idTransaksi"]; ?></td>
+                <td><?= $transaksiBB["nama_supplier"]; ?></td>
+                <td><?= htmlspecialchars($transaksiBB["detail_bahan"]); ?></td>
+                <td><!-- kosong atau bisa hilangkan kolom qty karena sudah ada di detail_bahan --></td>
+                <td><?= $transaksiBB["tanggal"]; ?></td>
+                <td><?= $transaksiBB["caraBayar"]; ?></td>
+                <td><?= $transaksiBB["bank"]; ?></td>
+                <td><?= $transaksiBB["statusTransaksi"]; ?></td>
+                <td>Rp<?= number_format($transaksiBB["totalHarga"], 0, ',', '.'); ?></td>
                   <td>
-                    <?php if($transaksiBB["statusTransaksi"] == 'Accepted' || $transaksiBB["statusTransaksi"] == 'Rejected' || $transaksiBB["statusTransaksi"] == 'Cancelled') : ?>
-                      <?= $transaksiBB["statusTransaksi"]; ?>
+                    <?php if ($transaksiBB["statusTransaksi"] === 'diterima' || $transaksiBB["statusTransaksi"] === 'Rejected' || $transaksiBB["statusTransaksi"] === 'Cancelled') : ?>
+                      <?= htmlspecialchars($transaksiBB["statusTransaksi"]); ?>
                     <?php else : ?>
                       <a href="terimaTransaksi.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
                         title="Terima Pesanan" 
                         onclick="return confirm('Yakin menerima transaksi <?= $transaksiBB["idTransaksi"]; ?>?');">
                         <i class="fas fa-check-circle text-success"></i>
                       </a>
-                      <a href="returTransaksi.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
+                      <a href="retur.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
                         title="Retur" 
                         onclick="return confirm('Yakin retur transaksi <?= $transaksiBB["idTransaksi"]; ?>?');">
                         <i class="fas fa-undo text-warning"></i>

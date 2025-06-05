@@ -43,17 +43,17 @@ $rasioPerProduk = [
 ];
 
 // Proyeksi kebutuhan stok 3 bulan ke depan
-$proyeksiKebutuhan = [];
-foreach ($inventoryBahan as $bahan) {
-    $idBahan = $bahan['id_bahan'];
-    $stokSekarang = $bahan['stokSisa'];
+// $proyeksiKebutuhan = [];
+// foreach ($inventoryBahan as $bahan) {
+//     $idBahan = $bahan['id_bahan'];
+//     $stokSekarang = $bahan['stokSisa'];
 
-    $proyeksiBulan1 = round($stokSekarang * 0.9);
-    $proyeksiBulan2 = round($proyeksiBulan1 * 0.9);
-    $proyeksiBulan3 = round($proyeksiBulan2 * 0.9);
+//     $proyeksiBulan1 = round($stokSekarang * 0.9);
+//     $proyeksiBulan2 = round($proyeksiBulan1 * 0.9);
+//     $proyeksiBulan3 = round($proyeksiBulan2 * 0.9);
 
-    $proyeksiKebutuhan[$idBahan] = [$proyeksiBulan1, $proyeksiBulan2, $proyeksiBulan3];
-}
+//     $proyeksiKebutuhan[$idBahan] = [$proyeksiBulan1, $proyeksiBulan2, $proyeksiBulan3];
+// }
 ?>
 
 <main id="main" class="main">
@@ -111,9 +111,7 @@ foreach ($inventoryBahan as $bahan) {
                                         <th>Harga</th>
                                         <th>Stok Sekarang</th>
                                         <th>Bisa Jadi Produk</th>
-                                        <th>Proyeksi Bulan 1</th>
-                                        <th>Proyeksi Bulan 2</th>
-                                        <th>Proyeksi Bulan 3</th>
+
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -140,9 +138,9 @@ foreach ($inventoryBahan as $bahan) {
                                             <td>Rp<?= number_format($bahan['harga'], 0, ',', '.'); ?></td>
                                             <td><?= htmlspecialchars($stok); ?></td>
                                             <td><?= $bisaJadiProduk; ?></td>
-                                            <td><?= $proyeksiKebutuhan[$idBahan][0]; ?></td>
+                                            <!-- <td><?= $proyeksiKebutuhan[$idBahan][0]; ?></td>
                                             <td><?= $proyeksiKebutuhan[$idBahan][1]; ?></td>
-                                            <td><?= $proyeksiKebutuhan[$idBahan][2]; ?></td>
+                                            <td><?= $proyeksiKebutuhan[$idBahan][2]; ?></td> -->
                                         </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($inventoryBahan)) : ?>

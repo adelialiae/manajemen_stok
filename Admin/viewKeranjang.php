@@ -57,27 +57,26 @@ if (isset($_GET['hapus'])) {
 function checkout($data) {
     global $connect;
 
-    // Ambil data dari $data (hasil POST)
     $caraBayar = $data['caraBayar'];
     $bank = isset($data['bank']) ? $data['bank'] : '';
-    // $finalBank = $data['finalBank'] ?? '';
 
-    // Cek apakah ada item di keranjang yang belum checkout
+    // Cek keranjang
     $cekKeranjang = mysqli_query($connect, "SELECT * FROM keranjang_pembelian WHERE idTransaksi IS NULL");
     if (mysqli_num_rows($cekKeranjang) == 0) {
-        return false; // tidak ada item untuk checkout
+        return false;
     }
 
-    // Buat nomor transaksi baru (contoh sederhana)
     $idTransaksiBaru = uniqid('TRX');
 
-    // Hitung total harga semua item
+    // Hitung total harga
     $totalHarga = 0;
+    $itemsKeranjang = [];
     while ($item = mysqli_fetch_assoc($cekKeranjang)) {
         $totalHarga += $item['harga'];
+        $itemsKeranjang[] = $item; // simpan dulu data keranjang
     }
 
-        // 1. Ambil supplier dari bahan baku di keranjang
+    // Ambil supplier
     $querySupplier = mysqli_query($connect, "
         SELECT b.id_supplier
         FROM keranjang_pembelian k
@@ -88,16 +87,28 @@ function checkout($data) {
     $dataSupplier = mysqli_fetch_assoc($querySupplier);
     $idSupplier = $dataSupplier['id_supplier'];
 
-    // 2. Simpan data transaksi ke transaksi_pembelian
-    $stmt = $connect->prepare("INSERT INTO transaksi_pembelian (idTransaksi, totalHarga, caraBayar, bank, id_supplier, statusTransaksi, id_bahan, qty) VALUES (?, ?, ?, ?, ?, 'menunggu supplier', ?, ?)");
-    $stmt->bind_param("sisssii", $idTransaksiBaru, $totalHarga, $caraBayar, $bank, $idSupplier, $idBahan, $qty);
+    // Simpan transaksi pembelian
+    $stmt = $connect->prepare("INSERT INTO transaksi_pembelian (idTransaksi, totalHarga, caraBayar, bank, id_supplier, statusTransaksi) VALUES (?, ?, ?, ?, ?, 'menunggu supplier')");
+    $stmt->bind_param("sissi", $idTransaksiBaru, $totalHarga, $caraBayar, $bank, $idSupplier);
     $stmt->execute();
 
-    // Update idTransaksi di keranjang_pembelian yang belum punya idTransaksi
+    // Simpan detail transaksi
+    foreach ($itemsKeranjang as $item) {
+        $idBahan = $item['id_bahan'];
+        $jumlah = $item['jumlah'];
+        $harga = $item['harga'];
+
+        $stmtDetail = $connect->prepare("INSERT INTO detail_transaksi_pembelian (idTransaksi, id_bahan, qty, harga) VALUES (?, ?, ?, ?)");
+        $stmtDetail->bind_param("siii", $idTransaksiBaru, $idBahan, $jumlah, $harga);
+        $stmtDetail->execute();
+    }
+
+    // Update idTransaksi di keranjang_pembelian
     mysqli_query($connect, "UPDATE keranjang_pembelian SET idTransaksi = '$idTransaksiBaru' WHERE idTransaksi IS NULL");
 
     return $idTransaksiBaru;
 }
+
 
 if (isset($_POST['submit'])) {
     $hasilCheckout = checkout($_POST);

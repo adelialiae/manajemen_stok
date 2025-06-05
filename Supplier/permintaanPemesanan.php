@@ -6,45 +6,47 @@ require 'template/headerSupplier.php';
 
 $idSupplier = $_SESSION['id_supplier'];  // id supplier yang login
 
-// Proses konfirmasi pesanan
-if (isset($_POST['konfirmasi'])) {
+    // Proses konfirmasi pesanan
+    if (isset($_POST['konfirmasi'])) {
     $idTransaksi = $_POST['id_transaksi'];
     $aksi = $_POST['aksi'];
-    $tanggalSekarang = date('Y-m-d');
 
     if ($aksi === 'terima') {
-        $status = 'Diterima';
-        $tanggal_terima = $tanggalSekarang;
+        $statusSupplier = 'menyetujui';
     } elseif ($aksi === 'tolak') {
-        $status = 'Ditolak';
-        $tanggal_terima = null;
+        $statusSupplier = 'menolak';
     }
 
-    // Update status transaksi_pembelian
+    // Update status persetujuan supplier
     $queryUpdate = "UPDATE transaksi_pembelian 
-                    SET statusTransaksi = '$status', 
-                        tanggal_terima = " . ($tanggal_terima ? "'$tanggal_terima'" : "NULL") . "
-                    WHERE idTransaksi = '$idTransaksi'";
+                     SET statusSupplier = '$statusSupplier'
+                     WHERE idTransaksi = '$idTransaksi'";
 
     if (mysqli_query($connect, $queryUpdate)) {
-        echo "<script>alert('Status pemesanan berhasil diperbarui!'); window.location='permintaanPemesanan.php';</script>";
+        echo "<script>alert('Status persetujuan berhasil diperbarui!'); window.location='permintaanPemesanan.php';</script>";
         exit;
     } else {
-        echo "<script>alert('Gagal memperbarui status!');</script>";
+        echo "<script>alert('Gagal memperbarui status persetujuan!');</script>";
     }
 }
+
 
 // Ambil data transaksi pembelian untuk supplier yang login
 // Kita anggap transaksi_pembelian hanya menyimpan 1 record per transaksi tanpa detail bahan,
 // jadi perlu join atau query lain untuk detail bahan jika perlu
 
 $query = "
-    SELECT tp.*, s.nama_supplier
-    FROM transaksi_pembelian tp
-    JOIN supplier s ON tp.id_supplier = s.id_supplier
-    WHERE tp.id_supplier = '$idSupplier'
-    ORDER BY tp.tanggal DESC
+  SELECT tp.*, s.nama_supplier,
+    GROUP_CONCAT(CONCAT(bb.nama_bahan, ' (', dtp.qty, ')') SEPARATOR ', ') AS namaBahanBaku
+  FROM transaksi_pembelian tp
+  JOIN supplier s ON tp.id_supplier = s.id_supplier
+  JOIN detail_transaksi_pembelian dtp ON tp.idTransaksi = dtp.idTransaksi
+  JOIN bahan_baku bb ON dtp.id_bahan = bb.id_bahan
+  WHERE tp.id_supplier = '$idSupplier'
+  GROUP BY tp.idTransaksi
+  ORDER BY tp.tanggal DESC
 ";
+
 
 $result = mysqli_query($connect, $query);
 $transaksi = [];
@@ -85,16 +87,17 @@ if ($result) {
                                     <td>Rp<?= number_format($tr['totalHarga'], 0, ',', '.'); ?></td>
                                     <td><?= htmlspecialchars($tr['caraBayar']); ?></td>
                                     <td>
-                                        <?php if ($tr['statusTransaksi'] === 'Menunggu Konfirmasi') : ?>
-                                            <form method="POST" class="d-inline">
-                                                <input type="hidden" name="id_transaksi" value="<?= $tr['idTransaksi']; ?>">
-                                                <button type="submit" name="aksi" value="terima" class="btn btn-success btn-sm" onclick="return confirm('Terima pesanan ini?')">Terima</button>
-                                                <button type="submit" name="aksi" value="tolak" class="btn btn-danger btn-sm" onclick="return confirm('Tolak pesanan ini?')">Tolak</button>
-                                                <input type="hidden" name="konfirmasi" value="1">
-                                            </form>
+                                       <?php if ($tr['statusSupplier'] === 'menunggu') : ?>
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="id_transaksi" value="<?= $tr['idTransaksi']; ?>">
+                                            <button type="submit" name="aksi" value="terima" class="btn btn-success btn-sm" onclick="return confirm('Terima pesanan ini?')">Setujui</button>
+                                            <button type="submit" name="aksi" value="tolak" class="btn btn-danger btn-sm" onclick="return confirm('Tolak pesanan ini?')">Tolak</button>
+                                            <input type="hidden" name="konfirmasi" value="1">
+                                        </form>
                                         <?php else : ?>
-                                            Tidak ada aksi
+                                            <?= htmlspecialchars($tr['statusSupplier']); ?>
                                         <?php endif; ?>
+
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
