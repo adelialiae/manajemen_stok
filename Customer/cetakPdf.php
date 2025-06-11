@@ -29,7 +29,7 @@ $detail = $detail[0];
 
 // Ambil produk yang dibeli
 $produk = query("SELECT * FROM keranjang 
-    JOIN produk ON keranjang.idProduk = produk.idProduk 
+    JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk 
     WHERE keranjang.username = '$username' AND keranjang.idTransaksi = '$idTransaksi'");
 
 $emailUser = $detail["email"];
@@ -38,7 +38,7 @@ $emailUser = $detail["email"];
 $pathTtd = realpath('../img/TTD_ADELL_1-removebg-preview.png');
 $srcTtd = 'data:image/png;base64,' . base64_encode(file_get_contents($pathTtd));
 
-$logoPath = realpath('../img/logobaru.png');
+$logoPath = realpath('../img/logo.jpg');
 $logoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
 
 $wmPath = realpath('../img/watermark_cheerful.png');
@@ -123,10 +123,10 @@ ob_start();
 </style>
 
 <div class="logo">
-    <img src="<?= $logoSrc ?>" alt="Logo Cheerful HETO">
+    <img src="<?= $logoSrc ?>" alt="Logo Queen Dawet Suji">
 </div>
 
-<h2>Cheerful HETO<br>Laporan Belanja Anda</h2>
+<h2>Queen Dawet Suji<br>Laporan Belanja Anda</h2>
 
 <img src="<?= $watermarkSrc ?>" class="watermark" alt="Watermark">
 
@@ -182,7 +182,7 @@ $ppn = $subTotal * 0.11;
 <div class="signature">
     <p>Pemilik Toko</p>
     <img src="<?= $srcTtd ?>" alt="Tanda Tangan">
-    <p>Cheerful HETO</p>
+    <p>Queen Dawet Suji</p>
 </div>
 
 <?php
@@ -210,12 +210,12 @@ try {
     $mail->SMTPSecure = 'tls';
     $mail->Port       = 587;
 
-    $mail->setFrom('cheerfulheto@gmail.com', 'Cheerful HETO');
+    $mail->setFrom('cheerfulheto@gmail.com', 'Queen Dawet Suji');
     $mail->addAddress($emailUser);
 
     $mail->isHTML(true);
     $mail->Subject = 'Laporan Transaksi Anda';
-    $mail->Body    = 'Halo ' . $detail["namaLengkap"] . ',<br>Berikut kami lampirkan laporan transaksi Anda dalam bentuk PDF.<br><br>Terima kasih telah berbelanja di Cheerful HETO.';
+    $mail->Body    = 'Halo ' . $detail["namaLengkap"] . ',<br>Berikut kami lampirkan laporan transaksi Anda dalam bentuk PDF.<br><br>Terima kasih telah berbelanja di Queen Dawet Suji.';
 
     $mail->addAttachment($pdfPath);
     $mail->send();

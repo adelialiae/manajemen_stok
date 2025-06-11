@@ -5,55 +5,69 @@ require 'adminControl.php';
 require 'template/headerAdmin.php';
 require 'template/sidebarAdmin.php';
 
-// Proses pengurangan stok
+// Proses pengurangan stok manual
 if (isset($_POST['kurangi_stok'])) {
-    $idBahan = $_POST['id_bahan'];
-    $jumlahKurang = (int) $_POST['jumlah'];
+    $idBahan = mysqli_real_escape_string($connect, $_POST['id_bahan']);
+    $jumlahKurang = (int)$_POST['jumlah'];
 
-    $stokSekarang = query("SELECT stokSisa FROM inventorystokbahan WHERE id_bahan = '$idBahan'")[0]['stokSisa'];
+    $queryStok = "SELECT stokSisa FROM inventorystokbahan WHERE id_bahan = ?";
+    $stmtStok = mysqli_prepare($connect, $queryStok);
+    mysqli_stmt_bind_param($stmtStok, "s", $idBahan);
+    mysqli_stmt_execute($stmtStok);
+    $resultStok = mysqli_stmt_get_result($stmtStok);
+    $stokSekarang = mysqli_fetch_assoc($resultStok)['stokSisa'];
+    mysqli_stmt_close($stmtStok);
 
     if ($jumlahKurang > 0 && $stokSekarang >= $jumlahKurang) {
-        mysqli_query($conn, "UPDATE inventorystokbahan SET stokSisa = stokSisa - $jumlahKurang WHERE id_bahan = '$idBahan'");
-        echo "<script>alert('Stok berhasil dikurangi.');window.location='manajemenStok.php';</script>";
+        $queryUpdate = "UPDATE inventorystokbahan SET stokSisa = stokSisa - ? WHERE id_bahan = ?";
+        $stmtUpdate = mysqli_prepare($connect, $queryUpdate);
+        mysqli_stmt_bind_param($stmtUpdate, "is", $jumlahKurang, $idBahan);
+        mysqli_stmt_execute($stmtUpdate);
+        mysqli_stmt_close($stmtUpdate);
+
+        echo "<script>alert('Stok berhasil dikurangi.');window.location='manajemenstok.php';</script>";
         exit;
     } else {
         echo "<script>alert('Jumlah pengurangan tidak valid atau stok tidak cukup.');</script>";
     }
 }
 
-// Data stok bahan baku
-$inventoryBahan = query("
+// Ambil data bahan baku dan kebutuhan harian
+$queryInventory = "
     SELECT 
         ib.id_bahan, 
-        bb.nama_bahan, 
-        bb.gambar, 
-        bb.harga, 
+        ib.namaBahan, 
         ib.stokSisa, 
-        bb.id_supplier 
+        ib.tanggalUpdate, 
+        bb.gambar, 
+        bb.harga 
     FROM inventorystokbahan ib
-    JOIN bahan_baku bb ON ib.id_bahan = bb.id_bahan
-");
+    LEFT JOIN bahan_baku bb ON ib.id_bahan = bb.id_bahan
+";
+$resultInventory = mysqli_query($connect, $queryInventory);
 
-// Contoh rasio bahan baku per produk (1 produk butuh berapa bahan)
-$rasioPerProduk = [
-    'B001' => 2,
-    'B002' => 3,
-    'B003' => 1,
-    // dst
-];
+$inventoryBahan = [];
+while ($row = mysqli_fetch_assoc($resultInventory)) {
+    $inventoryBahan[] = $row;
+}
 
-// Proyeksi kebutuhan stok 3 bulan ke depan
-// $proyeksiKebutuhan = [];
-// foreach ($inventoryBahan as $bahan) {
-//     $idBahan = $bahan['id_bahan'];
-//     $stokSekarang = $bahan['stokSisa'];
+// Ambil data rasio dari tabel rasio_penggunaan
+$queryRasio = "SELECT id_bahan, rasio_penggunaan FROM rasio_bahan_produk WHERE idProduk = 'PRD-1749269312
+'"; // sesuaikan dengan 1 varian (misal: Original)
+$resultRasio = mysqli_query($connect, $queryRasio);
 
-//     $proyeksiBulan1 = round($stokSekarang * 0.9);
-//     $proyeksiBulan2 = round($proyeksiBulan1 * 0.9);
-//     $proyeksiBulan3 = round($proyeksiBulan2 * 0.9);
+$rasioBahan = [];
+while ($row = mysqli_fetch_assoc($resultRasio)) {
+    $rasioBahan[$row['id_bahan']] = $row['rasio_penggunaan'];
+}
 
-//     $proyeksiKebutuhan[$idBahan] = [$proyeksiBulan1, $proyeksiBulan2, $proyeksiBulan3];
-// }
+// Hitung kebutuhan harian (asumsi: produksi 500 botol/hari)
+$produksiHarian = 500; // 500 botol/hari
+
+// Kebutuhan khusus fiber cream & daun suji (1kg -> 100 botol, 5kg -> 100 botol)
+$rasioFiberCream = 1 / 100; // 0.01 kg/botol
+$rasioDaunSuji = 5 / 100;   // 0.05 kg/botol
+
 ?>
 
 <main id="main" class="main">
@@ -66,7 +80,7 @@ $rasioPerProduk = [
             <!-- Form pengurangan stok -->
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5>Kurangi Stok Bahan Baku untuk Produksi</h5>
+                    <h5>Kurangi Stok Bahan Baku</h5>
                     <form method="POST" action="">
                         <div class="row g-3 align-items-center">
                             <div class="col-auto">
@@ -76,8 +90,8 @@ $rasioPerProduk = [
                                 <select name="id_bahan" id="id_bahan" class="form-select" required>
                                     <option value="" disabled selected>Pilih bahan</option>
                                     <?php foreach ($inventoryBahan as $bahan) : ?>
-                                        <option value="<?= $bahan['id_bahan']; ?>">
-                                            <?= htmlspecialchars($bahan['nama_bahan']); ?> (Stok: <?= $bahan['stokSisa']; ?>)
+                                        <option value="<?= htmlspecialchars($bahan['id_bahan']); ?>">
+                                            <?= htmlspecialchars($bahan['namaBahan']); ?> (Stok: <?= $bahan['stokSisa']; ?>)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -96,12 +110,12 @@ $rasioPerProduk = [
                 </div>
             </div>
 
-            <!-- Tabel inventory bahan baku -->
+            <!-- Tabel inventory & kebutuhan harian -->
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body table-responsive">
-                            <h5 class="card-title">Inventory Bahan Baku</h5>
+                            <h5 class="card-title">Inventory Bahan Baku & Kebutuhan Harian</h5>
                             <table class="table table-bordered table-hover">
                                 <thead class="table-dark">
                                     <tr>
@@ -109,9 +123,10 @@ $rasioPerProduk = [
                                         <th>Nama Bahan</th>
                                         <th>Gambar</th>
                                         <th>Harga</th>
-                                        <th>Stok Sekarang</th>
-                                        <th>Bisa Jadi Produk</th>
-
+                                        <th>Stok Saat Ini</th>
+                                        <th>Kebutuhan 1 Hari</th>
+                                        <th>Sisa Stok Setelah Kebutuhan</th>
+                                        <th>Update Terakhir</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -120,14 +135,23 @@ $rasioPerProduk = [
                                     foreach ($inventoryBahan as $bahan) :
                                         $idBahan = $bahan['id_bahan'];
                                         $stok = $bahan['stokSisa'];
+                                        $tanggalUpdate = $bahan['tanggalUpdate'];
 
-                                        // Hitung produk yang bisa dibuat
-                                        $rasio = $rasioPerProduk[$idBahan] ?? 1; // Default 1 jika tidak ada rasio
-                                        $bisaJadiProduk = ($rasio > 0) ? floor($stok / $rasio) : 0;
+                                        // Hitung kebutuhan harian
+                                        if ($idBahan == 1) { // Fiber Cream
+                                            $kebutuhan = $produksiHarian * $rasioFiberCream;
+                                        } elseif ($idBahan == 2) { // Daun Suji
+                                            $kebutuhan = $produksiHarian * $rasioDaunSuji;
+                                        } else { // Bahan lainnya, pakai rasio dari tabel
+                                            $rasio = $rasioBahan[$idBahan] ?? 0;
+                                            $kebutuhan = $produksiHarian * $rasio;
+                                        }
+
+                                        $sisa = $stok - $kebutuhan;
                                     ?>
                                         <tr>
                                             <td><?= $no++; ?></td>
-                                            <td><?= htmlspecialchars($bahan['nama_bahan']); ?></td>
+                                            <td><?= htmlspecialchars($bahan['namaBahan']); ?></td>
                                             <td>
                                                 <?php if ($bahan['gambar']) : ?>
                                                     <img src="../img/<?= htmlspecialchars($bahan['gambar']); ?>" alt="" width="50">
@@ -137,15 +161,19 @@ $rasioPerProduk = [
                                             </td>
                                             <td>Rp<?= number_format($bahan['harga'], 0, ',', '.'); ?></td>
                                             <td><?= htmlspecialchars($stok); ?></td>
-                                            <td><?= $bisaJadiProduk; ?></td>
-                                            <!-- <td><?= $proyeksiKebutuhan[$idBahan][0]; ?></td>
-                                            <td><?= $proyeksiKebutuhan[$idBahan][1]; ?></td>
-                                            <td><?= $proyeksiKebutuhan[$idBahan][2]; ?></td> -->
+                                            <td><?= number_format($kebutuhan, 2); ?></td>
+                                            <td>
+                                                <?= ($sisa < 0)
+                                                    ? "<span style='color:red;'>$sisa (Kurang!)</span>"
+                                                    : number_format($sisa, 2); ?>
+                                            </td>
+                                            <td><?= htmlspecialchars($tanggalUpdate); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
+
                                     <?php if (empty($inventoryBahan)) : ?>
                                         <tr>
-                                            <td colspan="9" class="text-center">Data tidak tersedia</td>
+                                            <td colspan="8" class="text-center">Data tidak tersedia</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

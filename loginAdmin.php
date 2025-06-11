@@ -62,8 +62,8 @@ if(isset($_SESSION["login"])){
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="img/logobaru.png" rel="icon">
-  <link href="img/logobaru.png" rel="apple-touch-icon">
+  <link href="img/logo.jpg" rel="icon">
+  <link href="img/logo.jpg" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -94,8 +94,8 @@ if(isset($_SESSION["login"])){
 
               <div class="d-flex justify-content-center py-4">
                 <a href="index.html" class="logo d-flex align-items-center w-auto">
-                  <img src="img/logobaru.png" alt="">
-                  <span class="d-none d-lg-block text-danger">Cheerful HETO</span>
+                  <img src="img/logo.jpg" alt="">
+                  <span class="d-none d-lg-block text-danger">Queen Dawet Suji</span>
                 </a>
               </div><!-- End Logo -->
 

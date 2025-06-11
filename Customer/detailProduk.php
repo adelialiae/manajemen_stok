@@ -8,13 +8,12 @@ require 'template/sidebarCust.php';
 
 $id = $_GET["id"];
 
-// Ambil data produk + nama kategori
 $produk = query("
-    SELECT produk.*, kategori.namaKategori 
-    FROM produk 
-    JOIN kategori ON produk.idKategori = kategori.idKategori 
-    WHERE produk.idProduk = '$id'
+    SELECT idProduk, namaProduk, varianRasa, hargaProduk, stokProduk, deskripsiProduk, gambarProduk 
+    FROM produkJadi
+    WHERE idProduk = '$id'
 ")[0];
+
 
 ?>
 
@@ -40,8 +39,8 @@ $produk = query("
                         </div>
 
                         <div class="col-12">
-                            <label for="kategoriProduk" class="form-label">Kategori Produk</label>
-                            <input class="form-control" id="kategoriProduk" name="kategoriProduk" readonly value="<?= $produk["namaKategori"]; ?>">
+                            <label for="varianRasa" class="form-label">Varian Rasa</label>
+                            <input class="form-control" id="varianRasa" name="varianRasa" readonly value="<?= $produk["varianRasa"]; ?>">
                         </div>
 
                         <div class="col-12">

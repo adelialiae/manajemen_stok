@@ -9,31 +9,30 @@ function tambahKeranjang($idProduk) {
     global $connect;
 
     $username = $_SESSION["username"];
-    $idProduk = $idProduk;
     $jumlah = 1;
 
-    $harga = query("SELECT hargaProduk FROM produk WHERE idProduk = '$idProduk'")[0]["hargaProduk"];
+    $harga = query("SELECT hargaProduk FROM produkJadi WHERE idProduk = '$idProduk'")[0]["hargaProduk"];
 
-    // cek idProduk sudah ada di keranjang atau belum maka jumlah akan ditambah dan harga akan diupdate
     $cekProduk = mysqli_query($connect, "SELECT * FROM keranjang WHERE idProduk = '$idProduk' && username = '$username' && status = 'Belum Dibayar'");
     if(mysqli_num_rows($cekProduk) > 0) {
         $row = mysqli_fetch_assoc($cekProduk);
         $jumlah = $row["jumlah"] + 1;
         $totalHarga = $harga * $jumlah;
-        mysqli_query($connect, "UPDATE keranjang SET jumlah = '$jumlah', harga = '$totalHarga' WHERE idProduk = '$idProduk' && username = '$username' && status = 'Belum Dibayar'");
+        mysqli_query($connect, "UPDATE keranjang SET jumlah = '$jumlah', hargaProduk = '$totalHarga' WHERE idProduk = '$idProduk' && username = '$username' && status = 'Belum Dibayar'");
         //mengurangi stok produk
-        mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk - 1 WHERE idProduk = '$idProduk'");
+        mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk - 1 WHERE idProduk = '$idProduk'");
         return mysqli_affected_rows($connect);
-    }
-    else{
+    } else {
         $totalHarga = $harga * $jumlah;
-        $query = "INSERT INTO keranjang VALUES('', '$username', '$idProduk', '$jumlah', '$totalHarga', 'Belum Dibayar', '')";
+        $query = "INSERT INTO keranjang (username, idProduk, jumlah, hargaProduk, status, idTransaksi) 
+                  VALUES ('$username', '$idProduk', '$jumlah', '$totalHarga', 'Belum Dibayar', '')";
         //mengurangi stok produk
-        mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk - 1 WHERE idProduk = '$idProduk'");
+        mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk - 1 WHERE idProduk = '$idProduk'");
         mysqli_query($connect, $query);
         return mysqli_affected_rows($connect);
     }
 }
+
 
 // Hapus produk dari keranjang
 function hapusKeranjang($username){
@@ -44,7 +43,7 @@ function hapusKeranjang($username){
     foreach($allKeranjang as $keranjang) {
         $idProduk = $keranjang["idProduk"];
         $jumlah = $keranjang["jumlah"];
-        mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk + '$jumlah' WHERE idProduk = '$idProduk'");
+        mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk + '$jumlah' WHERE idProduk = '$idProduk'");
     }
 
     //hapus semua produk di keranjang
@@ -70,17 +69,11 @@ function checkout($data){
     $totalHarga = $subtotal + $ppn;
 
     // Simpan transaksi
-    $queryTransaksi = "INSERT INTO transaksi VALUES(
-        '$idTransaksi', 
-        '$username', 
-        '$tanggalTransaksi', 
-        '$caraBayar', 
-        '$bank', 
-        '$statusTransaksi', 
-        '$totalHarga', 
-        'Pending',
-        ''
-    )";
+    $queryTransaksi = "INSERT INTO transaksi 
+    (idTransaksi, username, tanggalTransaksi, caraBayar, bank, statusTransaksi, totalHarga, statusPengiriman, feedBack) 
+    VALUES 
+    ('$idTransaksi', '$username', '$tanggalTransaksi', '$caraBayar', '$bank', '$statusTransaksi', '$totalHarga', 'Pending', '')";
+
     mysqli_query($connect, $queryTransaksi);
     
     // Update keranjang yang belum dibayar
@@ -110,7 +103,7 @@ function batalkanTransaksi($idTransaksi){
         foreach($allKeranjang as $keranjang) {
             $idProduk = $keranjang["idProduk"];
             $jumlah = $keranjang["jumlah"];
-            mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk + '$jumlah' WHERE idProduk = '$idProduk'");
+            mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk + '$jumlah' WHERE idProduk = '$idProduk'");
         }
         //update status transaksi menjadi cancelled
         mysqli_query($connect, "UPDATE transaksi SET statusTransaksi = 'Cancelled', statusPengiriman = 'Dibatalkan' WHERE idTransaksi = '$idTransaksi' AND username = '$username'");

@@ -64,18 +64,13 @@ $transaksiBahanBaku = query("
                   <td><?= $pesanan["statusPengiriman"]; ?></td>
                   <td>Rp<?= number_format($pesanan["totalHarga"], 0, ',', '.'); ?></td>
                   <td>
-                    <?php if($pesanan["statusPengiriman"] == 'Accepted' || $pesanan["statusPengiriman"] == 'Rejected' || $pesanan["statusTransaksi"] == 'Cancelled') : ?>
-                      <?= $pesanan["statusPengiriman"]; ?>
+                    <?php if($pesanan["statusTransaksi"] == 'Accepted' || $pesanan["statusPengiriman"] == 'Dalam Perjalanan' || $pesanan["statusTransaksi"] == 'Cancelled') : ?>
+                      <span class="badge bg-success">Diterima</span>
                     <?php else : ?>
                       <a href="terimaTransaksi.php?idTransaksi=<?= $pesanan["idTransaksi"]; ?>" 
                         title="Terima Pesanan" 
                         onclick="return confirm('Yakin menerima pesanan <?= $pesanan["idTransaksi"]; ?>?');">
                         <i class="fas fa-check-circle text-success"></i>
-                      </a>
-                      <a href="returTransaksi.php?idTransaksi=<?= $pesanan["idTransaksi"]; ?>" 
-                        title="Retur" 
-                        onclick="return confirm('Yakin retur pesanan <?= $pesanan["idTransaksi"]; ?>?');">
-                        <i class="fas fa-undo text-warning"></i>
                       </a>
                     <?php endif; ?>
                   </td>
@@ -89,60 +84,62 @@ $transaksiBahanBaku = query("
   </section>
 
   <!-- TRANSAKSI BAHAN BAKU -->
-  <section class="section">
-    <div class="row">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Daftar Transaksi Bahan Baku (Supplier)</h5>
-          <table class="table">
-            <thead>
+ <!-- TRANSAKSI BAHAN BAKU -->
+<section class="section">
+  <div class="row">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Daftar Transaksi Bahan Baku (Supplier)</h5>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>ID Transaksi</th>
+              <th>Supplier</th>
+              <th>Detail Bahan</th>
+              <th>Tanggal</th>
+              <th>Cara Bayar</th>
+              <th>Bank</th>
+              <th>Status</th>
+              <th>Total Harga</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $no = 1; foreach($transaksiBahanBaku as $transaksiBB): ?>
               <tr>
-                <th>No</th>
-                <th>ID Transaksi</th>
-                <th>Supplier</th>
-                <th>Tanggal</th>
-                <th>Cara Bayar</th>
-                <th>Bank</th>
-                <th>Status</th>
-                <th>Total Harga</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php $j=1; foreach($transaksiBahanBaku as $transaksiBB): ?>
-                <tr>
-                <td><?= $transaksiBB["idTransaksi"]; ?></td>
-                <td><?= $transaksiBB["nama_supplier"]; ?></td>
+                <td><?= $no++; ?></td>
+                <td><?= htmlspecialchars($transaksiBB["idTransaksi"]); ?></td>
+                <td><?= htmlspecialchars($transaksiBB["nama_supplier"]); ?></td>
                 <td><?= htmlspecialchars($transaksiBB["detail_bahan"]); ?></td>
-                <td><!-- kosong atau bisa hilangkan kolom qty karena sudah ada di detail_bahan --></td>
-                <td><?= $transaksiBB["tanggal"]; ?></td>
-                <td><?= $transaksiBB["caraBayar"]; ?></td>
-                <td><?= $transaksiBB["bank"]; ?></td>
-                <td><?= $transaksiBB["statusTransaksi"]; ?></td>
+                <td><?= htmlspecialchars($transaksiBB["tanggal"]); ?></td>
+                <td><?= htmlspecialchars($transaksiBB["caraBayar"]); ?></td>
+                <td><?= htmlspecialchars($transaksiBB["bank"]); ?></td>
+                <td><?= htmlspecialchars($transaksiBB["statusTransaksi"]); ?></td>
                 <td>Rp<?= number_format($transaksiBB["totalHarga"], 0, ',', '.'); ?></td>
-                  <td>
-                    <?php if ($transaksiBB["statusTransaksi"] === 'diterima' || $transaksiBB["statusTransaksi"] === 'Rejected' || $transaksiBB["statusTransaksi"] === 'Cancelled') : ?>
-                      <?= htmlspecialchars($transaksiBB["statusTransaksi"]); ?>
-                    <?php else : ?>
-                      <a href="terimaTransaksi.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
-                        title="Terima Pesanan" 
-                        onclick="return confirm('Yakin menerima transaksi <?= $transaksiBB["idTransaksi"]; ?>?');">
-                        <i class="fas fa-check-circle text-success"></i>
-                      </a>
-                      <a href="retur.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
-                        title="Retur" 
-                        onclick="return confirm('Yakin retur transaksi <?= $transaksiBB["idTransaksi"]; ?>?');">
-                        <i class="fas fa-undo text-warning"></i>
-                      </a>
-                    <?php endif; ?>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
+                <td>
+                  <?php if ($transaksiBB["statusTransaksi"] === 'diterima' || $transaksiBB["statusTransaksi"] === 'Rejected' || $transaksiBB["statusTransaksi"] === 'Cancelled'): ?>
+                    <span class="badge bg-success"><?= htmlspecialchars($transaksiBB["statusTransaksi"]); ?></span>
+                  <?php else: ?>
+                    <a href="terimaTransaksi.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
+                      title="Terima Pesanan" 
+                      onclick="return confirm('Yakin menerima transaksi <?= $transaksiBB["idTransaksi"]; ?>?');">
+                      <i class="fas fa-check-circle text-success"></i>
+                    </a>
+                    <a href="retur.php?idTransaksi=<?= $transaksiBB["idTransaksi"]; ?>" 
+                      title="Retur" 
+                      onclick="return confirm('Yakin retur transaksi <?= $transaksiBB["idTransaksi"]; ?>?');">
+                      <i class="fas fa-undo text-warning"></i>
+                    </a>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
 </main>

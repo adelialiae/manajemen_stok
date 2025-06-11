@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cheerful HETO | Toko Alat Kesehatan</title>
-  <link rel="icon" href="img/logobaru.png">
+  <title>Queen Dawet Suji | Toko Alat Kesehatan</title>
+  <link rel="icon" href="img/logo.jpg">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .hero {
@@ -42,7 +42,7 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <img src="img/logobaru.png" alt="Logo" width="40"> Cheerful HETO
+        <img src="img/logo.jpg" alt="Logo" width="40"> Queen Dawet Suji
       </a>
       <div>
         <a href="login.php" class="btn btn-outline-danger me-2">Login</a>
@@ -54,9 +54,9 @@
 
   <section class="hero">
     <div class="container">
-      <img src="img/logobaru.png" alt="Logo Cheerful HETO">
-      <h1 class="display-5">Selamat Datang di Cheerful HETO</h1>
-      <p class="lead">Temukan alat kesehatan terbaik untuk kebutuhan Anda</p>
+      <img src="img/logo.jpg" alt="Logo Queen Dawet Suji">
+      <h1 class="display-5">Selamat Datang di Queen Dawet Suji</h1>
+      <p class="lead">Temukan kesegaran dawet yang tiada tara terbaik untuk hari - hari anda</p>
     </div>
   </section>
 
@@ -92,7 +92,7 @@
   </section> -->
 
   <footer class="bg-light text-center py-4">
-    <p class="mb-0">&copy; <?= date('Y'); ?> Cheerful HETO. Toko Alat Kesehatan Terpercaya.</p>
+    <p class="mb-0">&copy; <?= date('Y'); ?> Queen Dawet Suji. Toko Alat Kesehatan Terpercaya.</p>
   </footer>
 
 </body>

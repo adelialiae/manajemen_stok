@@ -14,11 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['idKeranjang'], $_POST
     $idKeranjang = $_POST['idKeranjang'];
     $jumlahBaru = (int) $_POST['jumlah'];
 
-    // Ambil semua data yg dibutuhkan sekali aja
-    $keranjang = query("SELECT keranjang.idProduk, keranjang.jumlah AS jumlahLama, produk.hargaProduk, produkJadi.stokProduk 
-                        FROM keranjang 
-                        JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk 
-                        WHERE keranjang.idKeranjang = '$idKeranjang'")[0];
+    $keranjang = query("SELECT keranjang.idProduk, keranjang.jumlah AS jumlahLama, produkJadi.hargaProduk, produkJadi.stokProduk 
+                    FROM keranjang 
+                    JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk 
+                    WHERE keranjang.idKeranjang = '$idKeranjang'")[0];
 
     $idProduk = $keranjang['idProduk'];
     $jumlahLama = (int) $keranjang['jumlahLama'];
@@ -41,10 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['idKeranjang'], $_POST
         $hargaBaru = $jumlahBaru * $hargaProduk;
 
         // Update keranjang
-        mysqli_query($connect, "UPDATE keranjang SET jumlah = '$jumlahBaru', harga = '$hargaBaru' WHERE idKeranjang = '$idKeranjang'");
+        mysqli_query($connect, "UPDATE keranjang SET jumlah = '$jumlahBaru', hargaProduk = '$hargaBaru' WHERE idKeranjang = '$idKeranjang'");
 
         // Update stok produk
-        mysqli_query($connect, "UPDATE produk SET stokProduk = '$stokBaru' WHERE idProduk = '$idProduk'");
+        mysqli_query($connect, "UPDATE produkJadi SET stokProduk = '$stokBaru' WHERE idProduk = '$idProduk'");
 
         header("Location:".$_SERVER['PHP_SELF']);
         exit;
@@ -55,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['idKeranjang'], $_POST
 if (isset($_POST["hapusSemua"])) {
     $allKeranjang = query("SELECT idProduk, jumlah FROM keranjang WHERE username = '$username' AND status = 'Belum Dibayar'");
     foreach($allKeranjang as $item) {
-        mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk + {$item['jumlah']} WHERE idProduk = '{$item['idProduk']}'");
+        mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk + {$item['jumlah']} WHERE idProduk = '{$item['idProduk']}'");
     }
 
     mysqli_query($connect, "DELETE FROM keranjang WHERE username = '$username' AND status = 'Belum Dibayar'");
@@ -102,10 +101,15 @@ if (isset($_POST["submit"])) {
 }
 
 // Ambil semua keranjang user
-$allKeranjang = query("SELECT * FROM keranjang JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk WHERE username = '$username' AND status = 'Belum Dibayar'");
+$allKeranjang = query("
+    SELECT * FROM keranjang 
+    JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk 
+    WHERE username COLLATE utf8mb4_general_ci = '$username' 
+    AND status = 'Belum Dibayar'
+");
 
 // Hitung total
-$totalHarga = query("SELECT SUM(harga) AS totalHarga FROM keranjang WHERE username = '$username' AND status = 'Belum Dibayar'")[0]["totalHarga"];
+$totalHarga = query("SELECT SUM(hargaProduk) AS totalHarga FROM keranjang WHERE username = '$username' AND status = 'Belum Dibayar'")[0]["totalHarga"];
 $ppn = 0.11 * $totalHarga;
 $totalDenganPPN = $totalHarga + $ppn;
 
@@ -153,8 +157,8 @@ ob_end_flush();
                                             <input type="number" name="jumlah" value="<?= $keranjang['jumlah']; ?>" min="1" class="form-control" style="width:80px;" onchange="this.form.submit()">
                                         </form>
                                     </td>
-                                    <td>Rp<?= number_format($keranjang["harga"] / $keranjang["jumlah"], 0, ',', '.'); ?></td>
-                                    <td>Rp<?= number_format($keranjang["harga"], 0, ',', '.') ?></td>
+                                    <td>Rp<?= number_format($keranjang["hargaProduk"], 0, ',', '.'); ?></td>
+                                    <td>Rp<?= number_format($keranjang["hargaProduk"]* $keranjang["jumlah"], 0, ',', '.') ?></td>
                                     <td>
                                         <a href="?hapus=1&id=<?= $keranjang['idKeranjang']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus produk ini dari keranjang?')">Hapus</a>
                                     </td>

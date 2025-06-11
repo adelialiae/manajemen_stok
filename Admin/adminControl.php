@@ -207,7 +207,7 @@ function rejectTransaksi($idTransaksi){
     foreach($allKeranjang as $keranjang) {
         $idProduk = $keranjang["idProduk"];
         $jumlah = $keranjang["jumlah"];
-        mysqli_query($connect, "UPDATE produk SET stokProduk = stokProduk + '$jumlah' WHERE idProduk = '$idProduk'");
+        mysqli_query($connect, "UPDATE produkJadi SET stokProduk = stokProduk + '$jumlah' WHERE idProduk = '$idProduk'");
     }
     return mysqli_affected_rows($connect);
 }

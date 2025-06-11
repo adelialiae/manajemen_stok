@@ -13,7 +13,7 @@ JOIN customer ON transaksi.username = customer.username
 WHERE transaksi.idTransaksi = '$idTransaksi' AND transaksi.username = '$username';")[0];
 
 $keranjangUser = query("SELECT * FROM keranjang
-JOIN produk ON keranjang.idProduk = produk.idProduk
+JOIN produkJadi ON keranjang.idProduk = produkJadi.idProduk
 WHERE keranjang.username = '$username' AND keranjang.idTransaksi = '$idTransaksi';");
 
 $tanggalTransaksi = strtotime($detailTransaksi["tanggalTransaksi"]);
@@ -46,9 +46,9 @@ if(isset($_POST["submit"])) {
                     <div class="container mt-3">
                         <div class="row align-items-center">
                             <center>
-                                <img src="../img/logobaru.png" width="60px" class="mb-1">
+                                <img src="../img/logo.jpg" width="60px" class="mb-1">
                                 <div class="col-md-10">
-                                    <h2 class="mb-1"><strong class="text-danger">Cheerful HETO</strong></h2>
+                                    <h2 class="mb-1"><strong class="text-danger">Queen Dawet Suji</strong></h2>
                                     <h4 class="mb-2">Laporan Belanja Anda</h4>
                                 </div>
                             </center>
@@ -91,7 +91,7 @@ if(isset($_POST["submit"])) {
                                         <td style="padding-left: 10px;"><?= $keranjang["idProduk"]; ?></td>
                                         <td style="padding-left: 10px;"><?= $keranjang["namaProduk"]; ?></td>
                                         <td><?= $keranjang["jumlah"]; ?></td>
-                                        <td>Rp<?= number_format($keranjang["harga"], 0, ',', '.'); ?></td>
+                                        <td>Rp<?= number_format($keranjang["hargaProduk"], 0, ',', '.'); ?></td>
                                     </tr>
                                     <?php $i++; ?>
                                     <?php endforeach; ?>
@@ -101,7 +101,7 @@ if(isset($_POST["submit"])) {
                             <div class="mt-3 text-end">
                                 <h5>Pemilik Toko</h5>
                                 <img src="../img/TTD_ADELL_1-removebg-preview.png" alt="Tanda Tangan" style="width: 200px; height: 200px;">
-                                <p class="fw-bold">Cheerful HETO</p>
+                                <p class="fw-bold">Queen Dawet Suji</p>
                             </div>
                         </div>
                     </div>

@@ -35,7 +35,84 @@ if (isset($_GET['id'])) {
     exit;
 }
 
-// Logika hapus item keranjang_pembelian (opsional)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['idKeranjang']) && isset($_POST['jumlah'])) {
+    $idKeranjang = $_POST['idKeranjang'];
+    $jumlahBaru = intval($_POST['jumlah']);
+
+    // Ambil data keranjang
+    $dataKeranjang = mysqli_fetch_assoc(mysqli_query($connect, "SELECT id_bahan, jumlah FROM keranjang_pembelian WHERE idKeranjang = '$idKeranjang'"));
+    $idBahan = $dataKeranjang['id_bahan'];
+    $jumlahLama = $dataKeranjang['jumlah'];
+
+    // Hitung selisih (jumlahBaru - jumlahLama)
+    $selisih = $jumlahBaru - $jumlahLama;
+
+    if ($selisih > 0) {
+        // Tambah jumlah
+        // Cek stok dulu
+        $stok = mysqli_fetch_assoc(mysqli_query($connect, "SELECT stok FROM bahan_baku WHERE id_bahan = '$idBahan'"))['stok'];
+        if ($stok < $selisih) {
+            echo "<script>alert('Stok tidak cukup!'); window.location.href = 'viewKeranjang.php';</script>";
+            exit;
+        }
+
+        // Update jumlah & harga
+        mysqli_query($connect, "UPDATE keranjang_pembelian SET jumlah = '$jumlahBaru' WHERE idKeranjang = '$idKeranjang'");
+        $hargaSatuan = mysqli_fetch_assoc(mysqli_query($connect, "SELECT harga FROM bahan_baku WHERE id_bahan = '$idBahan'"))['harga'];
+        $hargaBaru = $jumlahBaru * $hargaSatuan;
+        mysqli_query($connect, "UPDATE keranjang_pembelian SET harga = '$hargaBaru' WHERE idKeranjang = '$idKeranjang'");
+
+        // Kurangi stok
+        mysqli_query($connect, "UPDATE bahan_baku SET stok = stok - $selisih WHERE id_bahan = '$idBahan'");
+    } elseif ($selisih < 0) {
+        // Kurang jumlah
+        // Update jumlah & harga
+        mysqli_query($connect, "UPDATE keranjang_pembelian SET jumlah = '$jumlahBaru' WHERE idKeranjang = '$idKeranjang'");
+        $hargaSatuan = mysqli_fetch_assoc(mysqli_query($connect, "SELECT harga FROM bahan_baku WHERE id_bahan = '$idBahan'"))['harga'];
+        $hargaBaru = $jumlahBaru * $hargaSatuan;
+        mysqli_query($connect, "UPDATE keranjang_pembelian SET harga = '$hargaBaru' WHERE idKeranjang = '$idKeranjang'");
+
+        // Kembalikan stok
+        mysqli_query($connect, "UPDATE bahan_baku SET stok = stok + ".abs($selisih)." WHERE id_bahan = '$idBahan'");
+    }
+
+    // Kalau jumlahBaru = 0, bisa langsung hapus
+    if ($jumlahBaru == 0) {
+        mysqli_query($connect, "DELETE FROM keranjang_pembelian WHERE idKeranjang = '$idKeranjang'");
+        mysqli_query($connect, "UPDATE bahan_baku SET stok = stok + '$jumlahLama' WHERE id_bahan = '$idBahan'");
+    }
+
+    header('Location: viewKeranjang.php');
+    exit;
+}
+
+// Logika kurang jumlah
+if (isset($_GET['kurang'])) {
+    $idKeranjang = $_GET['kurang'];
+
+    // Ambil data keranjang
+    $item = mysqli_fetch_assoc(mysqli_query($connect, "SELECT id_bahan, jumlah FROM keranjang_pembelian WHERE idKeranjang = '$idKeranjang'"));
+    $idBahan = $item['id_bahan'];
+    $jumlah = $item['jumlah'];
+
+    if ($jumlah > 1) {
+        // Update jumlah & harga
+        mysqli_query($connect, "UPDATE keranjang_pembelian SET jumlah = jumlah - 1 WHERE idKeranjang = '$idKeranjang'");
+        $dataKeranjang = mysqli_fetch_assoc(mysqli_query($connect, "SELECT jumlah FROM keranjang_pembelian WHERE idKeranjang = '$idKeranjang'"));
+        $jumlahBaru = $dataKeranjang['jumlah'];
+        $hargaSatuan = mysqli_fetch_assoc(mysqli_query($connect, "SELECT harga FROM bahan_baku WHERE id_bahan = '$idBahan'"))['harga'];
+        $hargaBaru = $jumlahBaru * $hargaSatuan;
+        mysqli_query($connect, "UPDATE keranjang_pembelian SET harga = '$hargaBaru' WHERE idKeranjang = '$idKeranjang'");
+
+        // Tambah stok kembali
+        mysqli_query($connect, "UPDATE bahan_baku SET stok = stok + 1 WHERE id_bahan = '$idBahan'");
+    } else {
+        // Kalau jumlah = 1, lebih baik langsung hapus
+        mysqli_query($connect, "DELETE FROM keranjang_pembelian WHERE idKeranjang = '$idKeranjang'");
+        mysqli_query($connect, "UPDATE bahan_baku SET stok = stok + 1 WHERE id_bahan = '$idBahan'");
+    }
+
+     // Logika hapus item keranjang_pembelian (opsional)
 if (isset($_GET['hapus'])) {
     $idKeranjang = $_GET['hapus'];
 
@@ -53,6 +130,11 @@ if (isset($_GET['hapus'])) {
     echo "<script>alert('Item berhasil dihapus dari keranjang_pembelian.'); window.location.href = 'viewkeranjang_pembelian.php';</script>";
     exit;
 }
+
+    header('Location: viewKeranjang.php');
+    exit;
+}
+
 
 function checkout($data) {
     global $connect;
@@ -158,20 +240,33 @@ require 'template/sidebarAdmin.php';
                         ");
 
                         $totalSemua = 0;
-                        while ($data = mysqli_fetch_assoc($query)) :
-                            $totalSemua += $data['harga'];
+                        while ($keranjang = mysqli_fetch_assoc($query)) :
+                            // Hitung total harga per item
+                            $totalHargaItem = $keranjang['jumlah'] * $keranjang['harga_satuan'];
+                            $totalSemua += $totalHargaItem;
                         ?>
                         <tr>
                             <td><?= $no++; ?></td>
-                            <td><?= htmlspecialchars($data['nama_bahan']); ?></td>
-                            <td>Rp <?= number_format($data['harga_satuan']); ?></td>
-                            <td><?= $data['jumlah']; ?></td>
-                            <td>Rp <?= number_format($data['harga']); ?></td>
+                            <td><?= htmlspecialchars($keranjang['nama_bahan']); ?></td>
+                            <td>Rp <?= number_format($keranjang['harga_satuan']); ?></td>
                             <td>
-                                <a href="viewKeranjang.php?hapus=<?= $data['idKeranjang']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus item ini?')">Hapus</a>
+                                <form action="" method="post">
+                                    <input type="hidden" name="idKeranjang" value="<?= $keranjang['idKeranjang']; ?>">
+                                    <input type="number" name="jumlah" value="<?= $keranjang['jumlah']; ?>" min="1" class="form-control" style="width:80px;" onchange="this.form.submit()">
+                                </form>
+                            </td>
+                            <td>Rp <?= number_format($totalHargaItem); ?></td>
+                            <td>
+                                <a href="viewKeranjang.php?hapus=<?= $keranjang['idKeranjang']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus item ini?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </td>
                         </tr>
                         <?php endwhile; ?>
+                        <tr>
+                            <th colspan="4">Total Semua</th>
+                            <th colspan="2">Rp <?= number_format($totalSemua); ?></th>
+                        </tr>
                     </tbody>
                     <tfoot>
                         <tr>
