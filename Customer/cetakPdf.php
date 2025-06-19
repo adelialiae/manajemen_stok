@@ -164,7 +164,7 @@ ob_start();
             <td><?= $i++; ?></td>
             <td><?= $p["namaProduk"] . ' ' . $p["idProduk"]; ?></td>
             <td><?= $p["jumlah"]; ?></td>
-            <td>Rp<?= number_format($p["harga"], 0, ',', '.'); ?></td>
+            <td>Rp<?= number_format($p["hargaProduk"], 0, ',', '.'); ?></td>
         </tr>
         <?php endforeach; ?>
     </tbody>

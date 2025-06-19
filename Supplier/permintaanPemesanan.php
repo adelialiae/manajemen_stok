@@ -12,22 +12,28 @@ $idSupplier = $_SESSION['id_supplier'];  // id supplier yang login
     $aksi = $_POST['aksi'];
 
     if ($aksi === 'terima') {
-        $statusSupplier = 'menyetujui';
+    $statusSupplier = 'menyetujui';
+    $statusTransaksi = 'diterima supplier'; // sesuai logika
     } elseif ($aksi === 'tolak') {
         $statusSupplier = 'menolak';
+        $statusTransaksi = 'ditolak supplier';
     }
 
-    // Update status persetujuan supplier
     $queryUpdate = "UPDATE transaksi_pembelian 
-                     SET statusSupplier = '$statusSupplier'
-                     WHERE idTransaksi = '$idTransaksi'";
+                    SET statusSupplier = '$statusSupplier',
+                        statusTransaksi = '$statusTransaksi'
+                    WHERE idTransaksi = '$idTransaksi'";
+
 
     if (mysqli_query($connect, $queryUpdate)) {
-        echo "<script>alert('Status persetujuan berhasil diperbarui!'); window.location='permintaanPemesanan.php';</script>";
-        exit;
-    } else {
-        echo "<script>alert('Gagal memperbarui status persetujuan!');</script>";
-    }
+    echo "<script>
+        alert('Status persetujuan berhasil diperbarui!');
+        window.open('invoice.php?id=$idTransaksi', '_blank');
+        window.location='permintaanPemesanan.php';
+    </script>";
+    exit;
+}
+    
 }
 
 
@@ -87,18 +93,23 @@ if ($result) {
                                     <td>Rp<?= number_format($tr['totalHarga'], 0, ',', '.'); ?></td>
                                     <td><?= htmlspecialchars($tr['caraBayar']); ?></td>
                                     <td>
-                                       <?php if ($tr['statusSupplier'] === 'menunggu') : ?>
-                                        <form method="POST" class="d-inline">
-                                            <input type="hidden" name="id_transaksi" value="<?= $tr['idTransaksi']; ?>">
-                                            <button type="submit" name="aksi" value="terima" class="btn btn-success btn-sm" onclick="return confirm('Terima pesanan ini?')">Setujui</button>
-                                            <button type="submit" name="aksi" value="tolak" class="btn btn-danger btn-sm" onclick="return confirm('Tolak pesanan ini?')">Tolak</button>
-                                            <input type="hidden" name="konfirmasi" value="1">
-                                        </form>
+                                        <?php if ($tr['statusSupplier'] === 'menunggu') : ?>
+                                            <form method="POST" class="d-inline">
+                                                <input type="hidden" name="id_transaksi" value="<?= $tr['idTransaksi']; ?>">
+                                                <button type="submit" name="aksi" value="terima" class="btn btn-success btn-sm" onclick="return confirm('Terima pesanan ini?')">Setujui</button>
+                                                <button type="submit" name="aksi" value="tolak" class="btn btn-danger btn-sm" onclick="return confirm('Tolak pesanan ini?')">Tolak</button>
+                                                <input type="hidden" name="konfirmasi" value="1">
+                                            </form>
+                                        <?php elseif ($tr['statusSupplier'] === 'menyetujui') : ?>
+                                            <span class="badge bg-success">Disetujui</span><br>
+                                            <a href="invoice.php?id=<?= $tr['idTransaksi']; ?>" target="_blank" class="btn btn-warning btn-sm mt-1">Cetak Invoice</a>
+                                        <?php elseif ($tr['statusSupplier'] === 'menolak') : ?>
+                                            <span class="badge bg-danger">Ditolak</span>
                                         <?php else : ?>
                                             <?= htmlspecialchars($tr['statusSupplier']); ?>
                                         <?php endif; ?>
-
                                     </td>
+
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>

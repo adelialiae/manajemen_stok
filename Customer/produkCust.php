@@ -25,7 +25,7 @@ $allProduk = query("SELECT * FROM produkJadi");
 <main id="main" class="main">
 
     <div class="pagetitle">
-        <h1 class="text-danger">Semua Produk Cheerful HETO</h1>
+        <h1 class="text-danger">Semua Produk Queen Dawet Suji</h1>
     </div>
 
     <div class="container">

@@ -30,9 +30,9 @@ if(!isset($_SESSION["login"])){
   <meta content="" name="description">
   <meta content="" name="keywords">
 
-  <!-- Favicons -->
-  <link href="../img/logobaru.png" rel="icon">
-  <link href="../img/logobaru.png" rel="apple-touch-icon">
+ <!-- Favicons -->
+  <link href="../img/logo.jpg" rel="icon">
+  <link href="../img/logo.jpg" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -74,7 +74,7 @@ if(!isset($_SESSION["login"])){
 
     <div class="d-flex align-items-center justify-content-between">
       <a href="index.html" class="logo d-flex align-items-center">
-        <img src="../img/logobaru.png" alt="">
+        <img src="../img/logo.jpg" alt="">
         <span class="d-none d-lg-block text-danger">Queen Dawet Suji</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>

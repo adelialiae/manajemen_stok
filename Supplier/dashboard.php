@@ -18,6 +18,29 @@ $totalbahan_baku = $dataDashboard['total_bahan_baku'] ?? 0;
 $pesananBelumDiterima = $dataDashboard['pesanan_belum_diterima'];
 $pesananDiterima = $dataDashboard['pesanan_diterima'];
 $pesananDitolak = $dataDashboard['pesanan_ditolak'];
+
+// Total pesanan yang statusSupplier = 'menunggu' (belum dikonfirmasi supplier)
+$queryBelumDiterima = mysqli_query($connect, "
+  SELECT COUNT(*) AS total FROM transaksi_pembelian
+  WHERE id_supplier = '$id_supplier' AND statusTransaksi = 'menunggu supplier'
+");
+$pesananBelumDiterima = mysqli_fetch_assoc($queryBelumDiterima)['total'];
+
+// Total pesanan yang statusSupplier = 'menyetujui' (disetujui supplier)
+$queryDiterima = mysqli_query($connect, "
+  SELECT COUNT(*) AS total FROM transaksi_pembelian
+  WHERE id_supplier = '$id_supplier' AND statusSupplier = 'menyetujui'
+");
+$pesananDiterima = mysqli_fetch_assoc($queryDiterima)['total'];
+
+// Total pesanan yang statusSupplier = 'menolak' (ditolak supplier)
+$queryDitolak = mysqli_query($connect, "
+  SELECT COUNT(*) AS total FROM transaksi_pembelian
+  WHERE id_supplier = '$id_supplier' AND statusSupplier = 'menolak'
+");
+$pesananDitolak = mysqli_fetch_assoc($queryDitolak)['total'];
+
+
 ?>
 
 <style>

@@ -10,16 +10,16 @@ $pesananCustomer = query("SELECT * FROM transaksi ORDER BY idTransaksi DESC");
 
 // Transaksi Bahan Baku
 $transaksiBahanBaku = query("
-  SELECT tp.idTransaksi, tp.tanggal, tp.caraBayar, tp.bank, tp.statusTransaksi, tp.totalHarga,
-         s.nama_supplier,
-         GROUP_CONCAT(CONCAT(bb.nama_bahan, ' (', dtb.qty, ')') SEPARATOR ', ') AS detail_bahan
+  SELECT tp.*, s.nama_supplier, 
+         GROUP_CONCAT(CONCAT(b.nama_bahan, ' (', dt.qty, ')') SEPARATOR ', ') AS detail_bahan
   FROM transaksi_pembelian tp
   JOIN supplier s ON tp.id_supplier = s.id_supplier
-  JOIN detail_transaksi_pembelian dtb ON tp.idTransaksi = dtb.idTransaksi
-  JOIN bahan_baku bb ON dtb.id_bahan = bb.id_bahan
+  JOIN detail_transaksi_pembelian dt ON tp.idTransaksi = dt.idTransaksi
+  JOIN bahan_baku b ON dt.id_bahan = b.id_bahan
   GROUP BY tp.idTransaksi
   ORDER BY tp.tanggal DESC
 ");
+
 
 
 ?>
@@ -64,13 +64,20 @@ $transaksiBahanBaku = query("
                   <td><?= $pesanan["statusPengiriman"]; ?></td>
                   <td>Rp<?= number_format($pesanan["totalHarga"], 0, ',', '.'); ?></td>
                   <td>
-                    <?php if($pesanan["statusTransaksi"] == 'Accepted' || $pesanan["statusPengiriman"] == 'Dalam Perjalanan' || $pesanan["statusTransaksi"] == 'Cancelled') : ?>
+                    <?php if($pesanan["statusTransaksi"] == 'Accepted' || $pesanan["statusPengiriman"] == 'Dalam Perjalanan') : ?>
                       <span class="badge bg-success">Diterima</span>
+                    <?php elseif($pesanan["statusTransaksi"] == 'Rejected' || $pesanan["statusTransaksi"] == 'Ditolak') : ?>
+                      <span class="badge bg-danger">Ditolak</span>
                     <?php else : ?>
                       <a href="terimaTransaksi.php?idTransaksi=<?= $pesanan["idTransaksi"]; ?>" 
                         title="Terima Pesanan" 
                         onclick="return confirm('Yakin menerima pesanan <?= $pesanan["idTransaksi"]; ?>?');">
                         <i class="fas fa-check-circle text-success"></i>
+                      </a>
+                      <a href="rejectTransaksi.php?idTransaksi=<?= $pesanan["idTransaksi"]; ?>"
+                        title="Tolak Pesanan"
+                        onclick="return confirm('Yakin menolak pesanan <?= $pesanan["idTransaksi"]; ?>?');">
+                        <i class="fas fa-times-circle text-danger"></i>
                       </a>
                     <?php endif; ?>
                   </td>
@@ -83,7 +90,6 @@ $transaksiBahanBaku = query("
     </div>
   </section>
 
-  <!-- TRANSAKSI BAHAN BAKU -->
  <!-- TRANSAKSI BAHAN BAKU -->
 <section class="section">
   <div class="row">
