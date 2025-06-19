@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Queen Dawet Suji</title>
-  <link rel="icon" href="img/logo.jpg">
+  <title>Adda</title>
+  <link rel="icon" href="img/LOGO ADDA.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .hero {
@@ -42,7 +42,7 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <img src="img/logo.jpg" alt="Logo" width="40"> Queen Dawet Suji
+        <img src="img/LOGO ADDA.png" alt="Logo" width="40"> Adda
       </a>
       <div>
         <a href="login.php" class="btn btn-outline-danger me-2">Login</a>
@@ -54,9 +54,9 @@
 
   <section class="hero">
     <div class="container">
-      <img src="img/logo.jpg" alt="Logo Queen Dawet Suji">
-      <h1 class="display-5">Selamat Datang di Queen Dawet Suji</h1>
-      <p class="lead">Temukan kesegaran dawet yang tiada tara terbaik untuk hari - hari anda</p>
+      <img src="img/LOGO ADDA.png" alt="Logo Queen Dawet Suji">
+      <h1 class="display-5">Selamat Datang di Adda</h1>
+      <p class="lead">Aplikasi untuk manajemen stok anda</p>
     </div>
   </section>
 
@@ -92,7 +92,7 @@
   </section> -->
 
   <footer class="bg-light text-center py-4">
-    <p class="mb-0">&copy; <?= date('Y'); ?> Queen Dawet Suji. Toko Alat Kesehatan Terpercaya.</p>
+    <p class="mb-0">&copy; <?= date('Y'); ?> Adda. Aplikasi Manajemen Stok Terpecaya.</p>
   </footer>
 
 </body>

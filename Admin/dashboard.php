@@ -16,7 +16,7 @@ $totalPesanan = count(query("SELECT * FROM transaksi"));
 $totalIncome = query("SELECT SUM(totalHarga) AS total FROM transaksi WHERE statusPengiriman = 'Terkirim'")[0]['total'];
 
 // Ambil data produk dengan stok rendah (stok <= 10)
-$queryStokRendah = mysqli_query($connect, "SELECT namaProduk, stokProduk FROM produkJadi WHERE stokProduk <= 10");
+$queryStokRendah = mysqli_query($connect, "SELECT idProduk, namaProduk, stokProduk FROM produkJadi WHERE stokProduk <= 10");
 
 // Hitung jumlah produk dengan stok rendah
 $jumlahStokRendah = mysqli_num_rows($queryStokRendah);
@@ -130,7 +130,14 @@ $totalStokBahanBaku = query("SELECT SUM(stokSisa) AS totalStokBahan FROM invento
             <strong>Perhatian!</strong> Produk berikut memiliki stok rendah:
             <ul>
               <?php while ($produk = mysqli_fetch_assoc($queryStokRendah)) : ?>
-                <li><?= htmlspecialchars($produk['namaProduk']) ?> (Stok: <?= $produk['stokProduk'] ?>)</li>
+                <li>
+                  <?= htmlspecialchars($produk['namaProduk']) ?> (Stok: <?= $produk['stokProduk'] ?>)
+                  <form method="POST" action="produksiProses.php">
+                    <input type="hidden" name="idProduk" value="<?= $produk['idProduk'] ?>">
+                    <input type="number" name="jumlahProduksi" min="1" value="100" class="form-control" required>
+                    <button type="submit" name="produksi" class="btn btn-success mt-1">Produksi Sekarang</button>
+                </form>
+                </li>
               <?php endwhile; ?>
             </ul>
           </div>

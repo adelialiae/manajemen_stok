@@ -66,8 +66,8 @@ if(isset($_POST["login"])){
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="img/logo.jpg" rel="icon">
-  <link href="img/logo.jpg" rel="apple-touch-icon">
+  <link href="img/LOGO ADDA.png" rel="icon">
+  <link href="img/LOGO ADDA.png" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -98,8 +98,8 @@ if(isset($_POST["login"])){
 
               <div class="d-flex justify-content-center py-4">
                 <a href="index.html" class="logo d-flex align-items-center w-auto">
-                  <img src="img/logo.jpg" alt="">
-                  <span class="d-none d-lg-block text-danger">Queen Dawet Suji</span>
+                  <img src="img/LOGO ADDA.png" alt="">
+                  <span class="d-none d-lg-block text-danger">Adda</span>
                 </a>
               </div><!-- End Logo -->
 

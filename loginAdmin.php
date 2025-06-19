@@ -95,7 +95,7 @@ if(isset($_SESSION["login"])){
               <div class="d-flex justify-content-center py-4">
                 <a href="index.html" class="logo d-flex align-items-center w-auto">
                   <img src="img/logo.jpg" alt="">
-                  <span class="d-none d-lg-block text-danger">Queen Dawet Suji</span>
+                  <span class="d-none d-lg-block text-danger">Adda</span>
                 </a>
               </div><!-- End Logo -->
 

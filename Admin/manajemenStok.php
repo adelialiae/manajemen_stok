@@ -5,42 +5,62 @@ require 'adminControl.php';
 require 'template/headerAdmin.php';
 require 'template/sidebarAdmin.php';
 
-// Proses pengurangan stok manual
-if (isset($_POST['kurangi_stok'])) {
-    $idBahan = mysqli_real_escape_string($connect, $_POST['id_bahan']);
-    $jumlahKurang = (int)$_POST['jumlah'];
+// Jumlah produksi per hari (dalam botol)
+$produksiHarian = 500;
 
-    // Cek stok dulu
-    $queryStok = "SELECT stokSisa FROM inventorystokbahan WHERE id_bahan = ?";
-    $stmtStok = mysqli_prepare($connect, $queryStok);
-    mysqli_stmt_bind_param($stmtStok, "i", $idBahan);
-    mysqli_stmt_execute($stmtStok);
-    $resultStok = mysqli_stmt_get_result($stmtStok);
-    $stokSekarang = mysqli_fetch_assoc($resultStok)['stokSisa'];
-    mysqli_stmt_close($stmtStok);
+// Rasio khusus untuk bahan dengan ID tertentu (jika tidak di rasio_bahan_produk)
+$rasioFiberCream = 1 / 100; // 0.01 kg/botol
+$rasioDaunSuji = 2 / 100;   // 0.02 kg/botol
 
-    if ($jumlahKurang > 0 && $stokSekarang >= $jumlahKurang) {
-        // Kurangi stok
-        $queryUpdate = "UPDATE inventorystokbahan SET stokSisa = stokSisa - ? WHERE id_bahan = ?";
-        $stmtUpdate = mysqli_prepare($connect, $queryUpdate);
-        mysqli_stmt_bind_param($stmtUpdate, "ii", $jumlahKurang, $idBahan);
-        mysqli_stmt_execute($stmtUpdate);
-        mysqli_stmt_close($stmtUpdate);
+// Proses PRODUKSI OTOMATIS
+if (isset($_POST['produksi_otomatis'])) {
+    $produksiHarian = 500;
+    $tanggalHariIni = date('Y-m-d');
 
-        // Tambahkan log ke permintaan_harian
-        $tanggalHariIni = date('Y-m-d');
-        $queryLog = "INSERT INTO permintaan_harian (id_bahan, tanggal, jumlah) VALUES (?, ?, ?)";
-        $stmtLog = mysqli_prepare($connect, $queryLog);
-        mysqli_stmt_bind_param($stmtLog, "isd", $idBahan, $tanggalHariIni, $jumlahKurang);
-        mysqli_stmt_execute($stmtLog);
-        mysqli_stmt_close($stmtLog);
+    // Ambil semua produk yang stok-nya rendah (misal < 100)
+    $queryProdukRendah = mysqli_query($connect, "SELECT idProduk FROM produkjadi WHERE stokProduk < 100");
 
-        echo "<script>alert('Stok berhasil dikurangi dan log permintaan disimpan.');window.location='manajemenstok.php';</script>";
-        exit;
-    } else {
-        echo "<script>alert('Jumlah pengurangan tidak valid atau stok tidak cukup.');</script>";
+    while ($produk = mysqli_fetch_assoc($queryProdukRendah)) {
+        $idProduk = $produk['idProduk'];
+
+        // Ambil rasio bahan dari idProduk ini
+        $queryRasio = mysqli_query($connect, "SELECT id_bahan, rasio_penggunaan FROM rasio_bahan_produk WHERE idProduk = '$idProduk'");
+        
+        $cukupSemua = true;
+        $bahanList = [];
+
+        while ($row = mysqli_fetch_assoc($queryRasio)) {
+            $idBahan = $row['id_bahan'];
+            $rasio = $row['rasio_penggunaan'];
+            $jumlahKurang = $produksiHarian * $rasio;
+
+            // Cek stok sekarang
+            $stokNow = query("SELECT stokSisa FROM inventorystokbahan WHERE id_bahan = '$idBahan'")[0]['stokSisa'];
+
+            if ($stokNow < $jumlahKurang) {
+                $cukupSemua = false;
+                break;
+            }
+
+            $bahanList[] = ['id' => $idBahan, 'jumlah' => $jumlahKurang];
+        }
+
+        // Jika semua bahan cukup, lakukan pengurangan stok dan update stok produk
+        if ($cukupSemua) {
+            foreach ($bahanList as $b) {
+                mysqli_query($connect, "UPDATE inventorystokbahan SET stokSisa = stokSisa - {$b['jumlah']} WHERE id_bahan = '{$b['id']}'");
+                mysqli_query($connect, "INSERT INTO permintaan_harian (id_bahan, tanggal, jumlah) VALUES ('{$b['id']}', '$tanggalHariIni', '{$b['jumlah']}')");
+            }
+
+            // Tambah stok produk jadi
+            mysqli_query($connect, "UPDATE produkjadi SET stokProduk = stokProduk + $produksiHarian WHERE idProduk = '$idProduk'");
+        }
     }
+
+    echo "<script>alert('Produksi berhasil! Stok bahan baku telah dikurangi.');window.location='manajemenstok.php';</script>";
+    exit;
 }
+
 
 // Ambil data inventory
 $queryInventory = "
@@ -62,19 +82,13 @@ while ($row = mysqli_fetch_assoc($resultInventory)) {
 }
 
 // Ambil rasio dari tabel rasio_bahan_produk
-$queryRasio = "SELECT id_bahan, rasio_penggunaan FROM rasio_bahan_produk WHERE idProduk = 'PRD-1749269312'";
+$queryRasio = "SELECT id_bahan, rasio_penggunaan FROM rasio_bahan_produk";
 $resultRasio = mysqli_query($connect, $queryRasio);
 
 $rasioBahan = [];
 while ($row = mysqli_fetch_assoc($resultRasio)) {
     $rasioBahan[$row['id_bahan']] = $row['rasio_penggunaan'];
 }
-
-// Hitung kebutuhan harian
-$produksiHarian = 500;
-$rasioFiberCream = 1 / 100; // 0.01 kg/botol
-$rasioDaunSuji = 5 / 100;   // 0.05 kg/botol
-
 ?>
 
 <main id="main" class="main">
@@ -84,40 +98,6 @@ $rasioDaunSuji = 5 / 100;   // 0.05 kg/botol
 
     <section class="section dashboard container">
         <div class="container">
-            <!-- Form pengurangan stok -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5>Kurangi Stok Bahan Baku</h5>
-                    <form method="POST" action="">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="id_bahan" class="col-form-label">Pilih Bahan:</label>
-                            </div>
-                            <div class="col-auto">
-                                <select name="id_bahan" id="id_bahan" class="form-select" required>
-                                    <option value="" disabled selected>Pilih bahan</option>
-                                    <?php foreach ($inventoryBahan as $bahan) : ?>
-                                        <option value="<?= htmlspecialchars($bahan['id_bahan']); ?>">
-                                            <?= htmlspecialchars($bahan['namaBahan']); ?> (Stok: <?= $bahan['stokSisa']; ?>)
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <label for="jumlah" class="col-form-label">Jumlah yang dipakai:</label>
-                            </div>
-                            <div class="col-auto">
-                                <input type="number" name="jumlah" id="jumlah" min="1" class="form-control" required>
-                            </div>
-                            <div class="col-auto">
-                                <button type="submit" name="kurangi_stok" class="btn btn-danger">Kurangi Stok</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Tabel inventory & kebutuhan harian -->
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -145,11 +125,11 @@ $rasioDaunSuji = 5 / 100;   // 0.05 kg/botol
                                         $tanggalUpdate = $bahan['tanggalUpdate'];
 
                                         // Hitung kebutuhan harian
-                                        if ($idBahan == 1) { // Fiber Cream
+                                        if ($idBahan == 1) {
                                             $kebutuhan = $produksiHarian * $rasioFiberCream;
-                                        } elseif ($idBahan == 2) { // Daun Suji
+                                        } elseif ($idBahan == 2) {
                                             $kebutuhan = $produksiHarian * $rasioDaunSuji;
-                                        } else { // Lainnya
+                                        } else {
                                             $rasio = $rasioBahan[$idBahan] ?? 0;
                                             $kebutuhan = $produksiHarian * $rasio;
                                         }
@@ -192,4 +172,3 @@ $rasioDaunSuji = 5 / 100;   // 0.05 kg/botol
         </div>
     </section>
 </main>
-
